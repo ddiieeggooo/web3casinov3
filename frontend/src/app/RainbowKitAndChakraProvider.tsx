@@ -1,20 +1,49 @@
-import React from "react";
-import RainbowKitAndChakraProvider from "./RainbowKitAndChakraProvider";
-import { Inter } from "next/font/google";
-// import Layout from "@/components/Layout.jsx";
+'use client';
+import { ChakraProvider } from '@chakra-ui/react'
+import '@rainbow-me/rainbowkit/styles.css';
+// import { sepolia } from '@/utils/sepolia';
 
-const inter = Inter({ subsets: ["latin"] });
+import {
+  getDefaultConfig,
+  RainbowKitProvider,
+} from '@rainbow-me/rainbowkit';
+import { WagmiProvider } from 'wagmi';
+import {
+  sepolia,
+  foundry,
+  polygon,
+  polygonAmoy
+} from 'wagmi/chains';
+import {
+  QueryClientProvider,
+  QueryClient,
+} from "@tanstack/react-query";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+const projectId = process.env.NEXT_PUBLIC_CLOUD_REOWN_APP_ID || 'defaultProjectId';
+
+const config = getDefaultConfig({
+    appName: 'Kayp',
+    projectId: projectId,
+    chains: [sepolia, foundry, polygon, polygonAmoy],
+    ssr: true, // If your dApp uses server side rendering (SSR)
+});
+
+const queryClient = new QueryClient();
+
+import { ReactNode } from 'react';
+
+const RainbowKitAndChakraProvider = ({ children }: { children: ReactNode }) => {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <RainbowKitAndChakraProvider>
-          {/* <Layout> */}
-            {children}
-          {/* </Layout> */}
-        </RainbowKitAndChakraProvider>
-      </body>
-    </html>
-  );
+    <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+            <RainbowKitProvider>
+                <ChakraProvider>
+                    {children}
+                </ChakraProvider>
+            </RainbowKitProvider>
+        </QueryClientProvider>
+    </WagmiProvider>
+  )
 }
+
+export default RainbowKitAndChakraProvider
