@@ -7,3 +7,6 @@
 [submodule "evmbackend/lib/foundry-chainlink-toolkit"]
 	path = evmbackend/lib/foundry-chainlink-toolkit
 	url = https://github.com/smartcontractkit/foundry-chainlink-toolkit
+[submodule "evmbackend/lib/chainlink"]
+	path = evmbackend/lib/chainlink
+	url = https://github.com/smartcontractkit/chainlink
