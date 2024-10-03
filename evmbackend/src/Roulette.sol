@@ -1,25 +1,16 @@
 // SPDX-License-Identifier: MIT
-// An example of a consumer contract that relies on a subscription for funding.
 pragma solidity ^0.8.24;
 
 import "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 import "lib/chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
 import "lib/chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 
-/**
- * Request testnet LINK and ETH here: https://faucets.chain.link/
- * Find information on LINK Token Contracts and get the latest ETH and LINK faucets here: https://docs.chain.link/docs/link-token-contracts/
- */
-
-/**
- * THIS IS AN EXAMPLE CONTRACT THAT USES HARDCODED VALUES FOR CLARITY.
- * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
- * DO NOT USE THIS CODE IN PRODUCTION.
- */
-
 contract Roulette is VRFConsumerBaseV2Plus, ReentrancyGuard {
     event RequestSent(uint256 requestId, uint32 numWords);
-    event RequestFulfilled(uint256 requestId, uint256[] randomWords);
+    event RequestFulfilled(uint256 requestId, uint256[] randomWords, uint256 winninNumber);
+    // Bet event
+    event BetPlaced(uint256 indexed requestId, address player);
+    event WinAmountCalculated(uint256 totalWinAmount);
 
     struct RequestStatus {
         bool fulfilled; // whether the request has been successfully fulfilled
@@ -32,7 +23,6 @@ contract Roulette is VRFConsumerBaseV2Plus, ReentrancyGuard {
     // Your subscription ID.
     uint256 public s_subscriptionId;
 
-    // ROULETTE START
     // Min and Max bet
     uint256 constant MIN_BET_AMOUNT = 5e17; // 0.5 POL
     uint256 constant MAX_SINGLE_BET_AMOUNT = 10e18; // 10 POL
@@ -62,9 +52,6 @@ contract Roulette is VRFConsumerBaseV2Plus, ReentrancyGuard {
     }
     // Map requestId to PlayerBet
     mapping(uint256 => PlayerBet) public bets;
-    // Bet event
-    event BetPlaced(uint256 indexed requestId, address player);
-    // ROULETTE END
 
     // Past request IDs.
     uint256[] public requestIds;
@@ -87,8 +74,7 @@ contract Roulette is VRFConsumerBaseV2Plus, ReentrancyGuard {
     // The default is 3, but you can set this higher.
     uint16 public requestConfirmations = 3;
 
-    // For this example, retrieve 2 random values in one request.
-    // Cannot exceed VRFCoordinatorV2_5.MAX_NUM_WORDS.
+    // For this example, retrieve 1 random value in one request.
     uint32 public numWords = 1;
 
     /**
@@ -144,7 +130,7 @@ contract Roulette is VRFConsumerBaseV2Plus, ReentrancyGuard {
         // Store the winningNumber in the s_requests mapping
         s_requests[_requestId].winningNumber = winningNumber;
 
-        emit RequestFulfilled(_requestId, _randomWords);
+        emit RequestFulfilled(_requestId, _randomWords, winningNumber);
 
         // Process the bet
         rienNeVaPlus(_requestId, _randomWords, winningNumber);
@@ -264,7 +250,6 @@ contract Roulette is VRFConsumerBaseV2Plus, ReentrancyGuard {
 
     function calculateWin(SingleBet[] storage _bets, uint256 winningNumber)
         internal
-        view
         returns (uint256)
     {
         uint256 totalWinAmount = 0;
@@ -308,7 +293,7 @@ contract Roulette is VRFConsumerBaseV2Plus, ReentrancyGuard {
 
             totalWinAmount += win;
         }
-
+        emit WinAmountCalculated(totalWinAmount);
         return totalWinAmount;
     }
 
