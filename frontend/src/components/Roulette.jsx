@@ -17,6 +17,7 @@ export default function Roulette() {
   const [bets, setBets] = useState([]);
   const [resultWinningNumber, setResultWinningNumber] = useState([]);
   const [resultTotalWinAmount, setResultTotalWinAmount] = useState([]);
+  const [updateCounter, setUpdateCounter] = useState(0); // Counter for triggering re-renders
 
   const allowedBetAmounts = [0.5, 1, 5, 10];
   const redNumbers = [
@@ -172,6 +173,7 @@ export default function Roulette() {
 
       setResultTotalWinAmount(frontendTotalWinAmount);
       setResultWinningNumber(frontendWinningNumber);
+      setUpdateCounter((prev) => prev + 1); // Increment update counter to trigger re-render
     } catch (error) {
       console.error('Error fetching results:', error);
       setResultTotalWinAmount([]);
@@ -189,28 +191,7 @@ export default function Roulette() {
       }
     };
     getAllResults();
-  }, [address]);
-
-  // Console logs for debugging
-  console.log('resultWinningNumber', resultWinningNumber);
-  console.log(
-    'winning number',
-    resultWinningNumber && resultWinningNumber[0]?.args?.winningNumber
-  );
-  console.log('resultTotalWinAmount', resultTotalWinAmount);
-  console.log(
-    'total win amount',
-    resultTotalWinAmount && resultTotalWinAmount[0]?.args?.totalWinAmount
-  );
-  console.log(
-    'last winning number',
-    resultWinningNumber && resultWinningNumber[resultWinningNumber.length - 1]?.args?.winningNumber
-  );
-  console.log(
-    'last total win amount',
-    resultTotalWinAmount &&
-      resultTotalWinAmount[resultTotalWinAmount.length - 1]?.args?.totalWinAmount
-  );
+  }, [address, updateCounter]); // Trigger re-fetch when address or updateCounter changes
 
   // Async function to place bets
   async function placeBets() {
