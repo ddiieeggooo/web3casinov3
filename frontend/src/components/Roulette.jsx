@@ -191,17 +191,17 @@ export default function Roulette() {
     }
   };
 
-  useEffect(() => {
-    const getAllResults = async () => {
-      if (address) {
-        await getResults();
-      } else {
-        setResultTotalWinAmount([]);
-        setResultWinningNumber([]);
-      }
-    };
-    getAllResults();
-  }, [address, updateCounter]); // Trigger re-fetch when address or updateCounter changes
+  // useEffect(() => {
+  //   const getAllResults = async () => {
+  //     if (address) {
+  //       await getResults();
+  //     } else {
+  //       setResultTotalWinAmount([]);
+  //       setResultWinningNumber([]);
+  //     }
+  //   };
+  //   getAllResults();
+  // }, [address, updateCounter]); // Trigger re-fetch when address or updateCounter changes
 
   // Async function to place bets
   async function placeBets() {
