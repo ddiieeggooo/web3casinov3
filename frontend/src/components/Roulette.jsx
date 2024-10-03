@@ -6,10 +6,11 @@ import {
   useWriteContract,
 } from 'wagmi';
 import { contractAddress, contractAbi } from '../constants/index';
-import { parseEther } from 'viem';
+import { parseEther, parseAbiItem } from 'viem';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ethers } from 'ethers';
+import { publicClient } from '@/utils/client'
 
 export default function Roulette() {
   const { address } = useAccount();
