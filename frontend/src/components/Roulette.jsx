@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   useAccount,
   useWaitForTransactionReceipt,
@@ -7,11 +7,17 @@ import {
 } from 'wagmi';
 import { contractAddress, contractAbi } from '../constants/index';
 import { parseEther } from 'viem';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { ethers } from 'ethers';
 
 export default function Roulette() {
   const { address } = useAccount();
   const [betAmount, setBetAmount] = useState(0.5); // Default bet amount
   const [bets, setBets] = useState([]);
+  const [requestId, setRequestId] = useState(null);
+  const [winningNumber, setWinningNumber] = useState(null);
+  const [winAmount, setWinAmount] = useState(null);
 
   const allowedBetAmounts = [0.5, 1, 5, 10];
   const redNumbers = [
@@ -43,6 +49,7 @@ export default function Roulette() {
     6: 'High',
   };
 
+  // Function to handle number button clicks
   function handleNumberClick(number) {
     const existingBetIndex = bets.findIndex(
       (bet) => bet.betType === betTypeMapping.Number && bet.numbers[0] === number
@@ -67,6 +74,7 @@ export default function Roulette() {
     }
   }
 
+  // Function to handle option button clicks
   function handleOptionClick(option) {
     const betType = betTypeMapping[option];
     const existingBetIndex = bets.findIndex((bet) => bet.betType === betType);
@@ -90,10 +98,12 @@ export default function Roulette() {
     }
   }
 
+  // Function to remove a bet
   function removeBet(index) {
     setBets(bets.filter((_, i) => i !== index));
   }
 
+  // Calculate total bet amount
   const totalBetAmount = bets.reduce((sum, bet) => sum + bet.amount, BigInt(0));
 
   // Convert bets amounts to strings to avoid BigInt serialization issues
@@ -105,41 +115,137 @@ export default function Roulette() {
 
   const totalBetAmountString = totalBetAmount.toString();
 
-  const { data: hash, isPending, writeContract } = useWriteContract({
+  // Set up useWriteContract hook
+  const { data: writeData, isPending, writeContract } = useWriteContract({
     mutation: {
       onSuccess: () => {
         setBets([]);
-        alert('Bet placed successfully!');
+        // Show a spinning roulette toast
+        toast.info(
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <img
+              src="https://i.imgur.com/7yUvePI.gif" // Example spinning roulette GIF
+              alt="Spinning Roulette"
+              style={{ width: '50px', marginRight: '10px' }}
+            />
+            <span>Bet placed successfully! Waiting for confirmation...</span>
+          </div>,
+          {
+            position: "top-right",
+            autoClose: false,
+            hideProgressBar: true,
+            closeOnClick: false,
+            pauseOnHover: false,
+            draggable: false,
+            progress: undefined,
+          }
+        );
       },
       onError: (error) => {
-        alert(`Error: ${error.message}`);
+        toast.error(`Error: ${error.message}`, {
+          position: "top-right",
+        });
       },
     },
   });
 
-  const { isLoading: isTxLoading } = useWaitForTransactionReceipt({
-    hash,
-    onSuccess: () => {
-      alert('Transaction confirmed!');
-    },
-    onError: (error) => {
-      alert(`Transaction failed: ${error.message}`);
-    },
+  // Set up useWaitForTransactionReceipt hook
+  const { data: receiptData, isLoading: isTxLoading } = useWaitForTransactionReceipt({
+    hash: writeData?.hash,
   });
 
-  function placeBets() {
+  // useEffect to process the transaction receipt
+  useEffect(() => {
+    const processReceipt = async () => {
+      if (receiptData) {
+        // Parse the receipt to get requestId from BetPlaced event
+        const iface = new ethers.utils.Interface(contractAbi);
+        let extractedRequestId = null;
+
+        for (const log of receiptData.logs) {
+          try {
+            const parsedLog = iface.parseLog(log);
+            if (parsedLog.name === 'BetPlaced') {
+              extractedRequestId = parsedLog.args.requestId.toNumber();
+              break;
+            }
+          } catch (error) {
+            // Ignore logs that don't match
+          }
+        }
+
+        if (extractedRequestId) {
+          setRequestId(extractedRequestId);
+          // Fetch the request status
+          const status = await getRequestStatus(extractedRequestId);
+          if (status) {
+            setWinningNumber(status.winningNumber);
+            setWinAmount(status.winAmount);
+
+            // Show the winning number and win amount in a toast
+            toast.dismiss(); // Dismiss the spinning roulette toast
+            toast.success(
+              <div>
+                <h4>🎉 Transaction Confirmed! 🎉</h4>
+                <p>Winning Number: <strong>{status.winningNumber}</strong></p>
+                <p>Win Amount: <strong>{(status.winAmount / 1e18).toFixed(2)} POL</strong></p>
+              </div>,
+              {
+                position: "top-right",
+                autoClose: 5000,
+              }
+            );
+          }
+        } else {
+          toast.dismiss();
+          toast.error('Failed to retrieve requestId from transaction logs.', {
+            position: "top-right",
+          });
+        }
+      }
+    };
+
+    processReceipt();
+  }, [receiptData]);
+
+  // Function to read request status from the contract
+  const getRequestStatus = async (requestId) => {
+    try {
+      const contract = new ethers.Contract(contractAddress, contractAbi);
+      const status = await contract.getRequestStatus(requestId);
+      return status;
+    } catch (error) {
+      console.error('Error fetching request status:', error);
+      toast.error(`Error fetching request status: ${error.message}`, {
+        position: "top-right",
+      });
+      return null;
+    }
+  };
+
+  // Async function to place bets
+  async function placeBets() {
     if (!writeContract) {
-      alert('Transaction is not ready');
+      toast.error('Transaction is not ready', {
+        position: "top-right",
+      });
       return;
     }
-    writeContract({
-      address: contractAddress,
-      abi: contractAbi,
-      functionName: 'placeBet',
-      args: [betsForContract],
-      value: totalBetAmountString,
-      account: address,
-    });
+    try {
+      await writeContract({
+        address: contractAddress,
+        abi: contractAbi,
+        functionName: 'placeBet',
+        args: [betsForContract],
+        value: totalBetAmountString, // Correctly placed inside 'overrides'
+        account: address,
+      });
+    } catch (error) {
+      console.error('Error sending transaction:', error);
+      toast.error(`Error sending transaction: ${error.message}`, {
+        position: "top-right",
+      });
+    }
   }
 
   // Kaomoji style representation
@@ -147,8 +253,12 @@ export default function Roulette() {
 
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+      {/* Toast Container */}
+      <ToastContainer />
+
       <h1>Roulette</h1>
       <pre style={{ fontSize: '24px' }}>{rouletteKaomoji}</pre>
+
       <h2>Select Bet Amount per Coin:</h2>
       <div style={{ marginBottom: '10px' }}>
         {allowedBetAmounts.map((amount) => (
@@ -263,40 +373,3 @@ export default function Roulette() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// 'use client';
-
-// import { useState, useEffect } from "react";
-// import { useAccount, useWriteContract,useWaitForTransactionReceipt } from "wagmi";
-// import { contractAddress, contractAbi } from '../constants/index';
-
-// export default function Roulette() {
-//   const { address } = useAccount();
-//   const [bet, setBet] = useState([["", "", ""]]);
-//   return (
-//     <div>
-//       <h1>Roulette</h1>
-//       <h2>Place your bet :</h2>
-//     </div>
-//   );
-// }
