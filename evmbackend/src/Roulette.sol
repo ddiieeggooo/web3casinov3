@@ -7,7 +7,7 @@ import "lib/chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 
 contract Roulette is VRFConsumerBaseV2Plus, ReentrancyGuard {
     event RequestSent(uint256 requestId, uint32 numWords);
-    event RequestFulfilled(uint256 requestId, uint256[] randomWords, uint256 winninNumber);
+    event RequestFulfilled(uint256 requestId, uint256[] randomWords, uint256 winningNumber);
     // Bet event
     event BetPlaced(uint256 indexed requestId, address player);
     event WinAmountCalculated(uint256 totalWinAmount);
