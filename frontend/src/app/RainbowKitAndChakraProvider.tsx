@@ -1,7 +1,6 @@
 'use client';
 import { ChakraProvider } from '@chakra-ui/react'
 import '@rainbow-me/rainbowkit/styles.css';
-// import { sepolia } from '@/utils/sepolia';
 
 import {
   getDefaultConfig,
@@ -9,7 +8,6 @@ import {
 } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import {
-  sepolia,
   foundry,
   polygon,
   polygonAmoy
@@ -22,9 +20,9 @@ import {
 const projectId = process.env.NEXT_PUBLIC_CLOUD_REOWN_APP_ID || 'defaultProjectId';
 
 const config = getDefaultConfig({
-    appName: 'Kayp',
+    appName: 'web3casino',
     projectId: projectId,
-    chains: [sepolia, foundry, polygon, polygonAmoy],
+    chains: [foundry, polygon, polygonAmoy],
     ssr: true, // If your dApp uses server side rendering (SSR)
 });
 

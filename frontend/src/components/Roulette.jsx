@@ -6,7 +6,7 @@ import {
   useWriteContract,
 } from 'wagmi';
 import { contractAddress, contractAbi } from '../constants/index';
-import { parseEther, parseAbiItem } from 'viem';
+import { parseEther, parseAbiItem, formatEther } from 'viem';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { publicClient } from '@/utils/client';
@@ -15,6 +15,8 @@ export default function Roulette() {
   const { address } = useAccount();
   const [betAmount, setBetAmount] = useState(0.5); // Default bet amount
   const [bets, setBets] = useState([]);
+  const [resultWinningNumber, setResultWinningNumber] = useState([]);
+  const [resultTotalWinAmount, setResultTotalWinAmount] = useState([]);
 
   const allowedBetAmounts = [0.5, 1, 5, 10];
   const redNumbers = [
@@ -151,43 +153,64 @@ export default function Roulette() {
     hash: writeData?.hash,
   });
 
-  // test fetch
-  const [resultWinningNumber, setResultWinningNumber] = useState([]);
-  const [resultTotalWinAmount, setResultTotalWinAmount] = useState([]);
+  // Fetch results
   const getResults = async () => {
-    const frontendTotalWinAmount = await publicClient.getLogs({
-      address: contractAddress,
-      event: parseAbiItem('event WinAmountCalculated(uint256 totalWinAmount)'),
-      // du premier bloc
-      fromBlock: 12724510n,
-      // jusqu'au dernier
-      toBlock: 'latest' // Pas besoin valeur par défaut
-    })
+    try {
+      const frontendTotalWinAmount = await publicClient.getLogs({
+        address: contractAddress,
+        event: parseAbiItem('event WinAmountCalculated(uint256 totalWinAmount)'),
+        fromBlock: 12724510n,
+        toBlock: 'latest'
+      });
 
-    const frontendWinningNumber = await publicClient.getLogs({
-      address: contractAddress,
-      event: parseAbiItem('event RequestFulfilled(uint256 requestId, uint256[] randomWords, uint256 winninNumber)'),
-      // du premier bloc
-      fromBlock: 12724510n,
-      // jusqu'au dernier
-      toBlock: 'latest' // Pas besoin valeur par défaut
-    })
-    setResultTotalWinAmount(frontendTotalWinAmount);
-    setResultWinningNumber(frontendWinningNumber);
-  }
+      const frontendWinningNumber = await publicClient.getLogs({
+        address: contractAddress,
+        event: parseAbiItem('event RequestFulfilled(uint256 requestId, uint256[] randomWords, uint256 winningNumber)'),
+        fromBlock: 12724510n,
+        toBlock: 'latest'
+      });
+
+      setResultTotalWinAmount(frontendTotalWinAmount);
+      setResultWinningNumber(frontendWinningNumber);
+    } catch (error) {
+      console.error('Error fetching results:', error);
+      setResultTotalWinAmount([]);
+      setResultWinningNumber([]);
+    }
+  };
 
   useEffect(() => {
     const getAllResults = async () => {
-      if (address !== 'undefined') {
+      if (address) {
         await getResults();
+      } else {
+        setResultTotalWinAmount([]);
+        setResultWinningNumber([]);
       }
-    }
+    };
     getAllResults();
-  }, [resultWinningNumber, resultTotalWinAmount])
-  // fin test fetch
-  console.log(resultWinningNumber);
-  console.log(resultTotalWinAmount);
+  }, [address]);
 
+  // Console logs for debugging
+  console.log('resultWinningNumber', resultWinningNumber);
+  console.log(
+    'winning number',
+    resultWinningNumber && resultWinningNumber[0]?.args?.winningNumber
+  );
+  console.log('resultTotalWinAmount', resultTotalWinAmount);
+  console.log(
+    'total win amount',
+    resultTotalWinAmount && resultTotalWinAmount[0]?.args?.totalWinAmount
+  );
+  console.log(
+    'last winning number',
+    resultWinningNumber && resultWinningNumber[resultWinningNumber.length - 1]?.args?.winningNumber
+  );
+  console.log(
+    'last total win amount',
+    resultTotalWinAmount &&
+      resultTotalWinAmount[resultTotalWinAmount.length - 1]?.args?.totalWinAmount
+  );
 
   // Async function to place bets
   async function placeBets() {
@@ -203,7 +226,7 @@ export default function Roulette() {
         abi: contractAbi,
         functionName: 'placeBet',
         args: [betsForContract],
-        value: totalBetAmountString, // Correctly placed inside 'overrides'
+        value: totalBetAmountString,
         account: address,
       });
     } catch (error) {
@@ -336,6 +359,54 @@ export default function Roulette() {
       >
         {isPending || isTxLoading ? 'Placing Bets...' : 'Place Bets'}
       </button>
+
+      <h2>Last Spin</h2>
+      <div>
+        <p>
+          Winning Number:{' '}
+          {resultWinningNumber && resultWinningNumber.length > 0
+            ? resultWinningNumber[resultWinningNumber.length - 1]?.args?.winningNumber.toString()
+            : 'No spins yet'}
+        </p>
+        <p>
+          Total Win Amount:{' '}
+          {resultTotalWinAmount && resultTotalWinAmount.length > 0
+            ? formatEther(
+                resultTotalWinAmount[resultTotalWinAmount.length - 1]?.args?.totalWinAmount.toString()
+              ) + ' POL'
+            : 'No spins yet'}
+        </p>
+      </div>
+
+      <div>
+        <h2>Spin History</h2>
+        {resultWinningNumber && resultWinningNumber.length > 0 ? (
+          <ul className="spin-history-list">
+            {resultWinningNumber.map((event, index) => (
+              <li key={index} className="spin-history-item">
+                <div className="spin-history-content">
+                  <div className="spin-history-section">
+                    <p>
+                      <strong>Winning Number:</strong> {event?.args?.winningNumber?.toString() ?? 'N/A'}
+                    </p>
+                  </div>
+                  <div className="spin-history-section">
+                    <p>
+                      <strong>Total Win Amount:</strong>{' '}
+                      {resultTotalWinAmount[index]
+                        ? formatEther(resultTotalWinAmount[index]?.args?.totalWinAmount ?? '0') +
+                          ' POL'
+                        : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No spin history available.</p>
+        )}
+      </div>
     </div>
   );
 }
