@@ -17,8 +17,6 @@ export default function Casino () {
     <a href="/casino">click here to enter the Cosmos room (not availabe yet)</a>
     <br />
     <a href="/casino">click here to enter the Ergo room (not availabe yet)</a>
-    <br />
-    <a href="/casino">click here to enter the Bitcoin room (not availabe yet)</a>
     </>
 
   );

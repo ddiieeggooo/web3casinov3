@@ -9,14 +9,14 @@ import { contractAddress, contractAbi } from '../constants/index';
 import { parseEther, parseAbiItem } from 'viem';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { ethers } from 'ethers';
-import { publicClient } from '@/utils/client'
+import { publicClient } from '@/utils/client';
+import { polygonAmoy } from '@/utils/polygonAmoy';
+
 
 export default function Roulette() {
   const { address } = useAccount();
   const [betAmount, setBetAmount] = useState(0.5); // Default bet amount
   const [bets, setBets] = useState([]);
-  const [requestId, setRequestId] = useState(null);
   const [winningNumber, setWinningNumber] = useState(null);
   const [winAmount, setWinAmount] = useState(null);
 
@@ -156,73 +156,108 @@ export default function Roulette() {
   });
 
   // useEffect to process the transaction receipt
+  // useEffect(() => {
+  //   const processReceipt = async () => {
+  //     if (receiptData) {
+  //       // Parse the receipt to get requestId from BetPlaced event
+  //       const iface = new ethers.utils.Interface(contractAbi);
+  //       let extractedRequestId = null;
+
+  //       for (const log of receiptData.logs) {
+  //         try {
+  //           const parsedLog = iface.parseLog(log);
+  //           if (parsedLog.name === 'BetPlaced') {
+  //             extractedRequestId = parsedLog.args.requestId.toNumber();
+  //             break;
+  //           }
+  //         } catch (error) {
+  //           // Ignore logs that don't match
+  //         }
+  //       }
+
+  //       if (extractedRequestId) {
+  //         setRequestId(extractedRequestId);
+  //         // Fetch the request status
+  //         const status = await getRequestStatus(extractedRequestId);
+  //         if (status) {
+  //           setWinningNumber(status.winningNumber);
+  //           setWinAmount(status.winAmount);
+
+  //           // Show the winning number and win amount in a toast
+  //           toast.dismiss(); // Dismiss the spinning roulette toast
+  //           toast.success(
+  //             <div>
+  //               <h4>🎉 Transaction Confirmed! 🎉</h4>
+  //               <p>Winning Number: <strong>{status.winningNumber}</strong></p>
+  //               <p>Win Amount: <strong>{(status.winAmount / 1e18).toFixed(2)} POL</strong></p>
+  //             </div>,
+  //             {
+  //               position: "top-right",
+  //               autoClose: 5000,
+  //             }
+  //           );
+  //         }
+  //       } else {
+  //         toast.dismiss();
+  //         toast.error('Failed to retrieve requestId from transaction logs.', {
+  //           position: "top-right",
+  //         });
+  //       }
+  //     }
+  //   };
+
+  //   processReceipt();
+  // }, [receiptData]);
+
+  // // Function to read request status from the contract
+  // const getRequestStatus = async (requestId) => {
+  //   try {
+  //     const contract = new ethers.Contract(contractAddress, contractAbi);
+  //     const status = await contract.getRequestStatus(requestId);
+  //     return status;
+  //   } catch (error) {
+  //     console.error('Error fetching request status:', error);
+  //     toast.error(`Error fetching request status: ${error.message}`, {
+  //       position: "top-right",
+  //     });
+  //     return null;
+  //   }
+  // };
+  // test fetch
+  const [resultWinningNumber, setResultWinningNumber] = useState([]);
+  const [resultTotalWinAmount, setResultTotalWinAmount] = useState([]);
+  const getResults = async () => {
+    const frontendTotalWinAmount = await publicClient.getLogs({
+      address: contractAddress,
+      event: parseAbiItem('event WinAmountCalculated(uint256 totalWinAmount)'),
+      // du premier bloc
+      fromBlock: 12724510n,
+      // jusqu'au dernier
+      toBlock: 'latest' // Pas besoin valeur par défaut
+    })
+
+    const frontendWinningNumber = await publicClient.getLogs({
+      address: contractAddress,
+      event: parseAbiItem('event RequestFulfilled(uint256 requestId, uint256[] randomWords, uint256 winninNumber)'),
+      // du premier bloc
+      fromBlock: 12724510n,
+      // jusqu'au dernier
+      toBlock: 'latest' // Pas besoin valeur par défaut
+    })
+    setResultTotalWinAmount(frontendTotalWinAmount);
+    setResultWinningNumber(frontendWinningNumber);
+  }
+
   useEffect(() => {
-    const processReceipt = async () => {
-      if (receiptData) {
-        // Parse the receipt to get requestId from BetPlaced event
-        const iface = new ethers.utils.Interface(contractAbi);
-        let extractedRequestId = null;
-
-        for (const log of receiptData.logs) {
-          try {
-            const parsedLog = iface.parseLog(log);
-            if (parsedLog.name === 'BetPlaced') {
-              extractedRequestId = parsedLog.args.requestId.toNumber();
-              break;
-            }
-          } catch (error) {
-            // Ignore logs that don't match
-          }
-        }
-
-        if (extractedRequestId) {
-          setRequestId(extractedRequestId);
-          // Fetch the request status
-          const status = await getRequestStatus(extractedRequestId);
-          if (status) {
-            setWinningNumber(status.winningNumber);
-            setWinAmount(status.winAmount);
-
-            // Show the winning number and win amount in a toast
-            toast.dismiss(); // Dismiss the spinning roulette toast
-            toast.success(
-              <div>
-                <h4>🎉 Transaction Confirmed! 🎉</h4>
-                <p>Winning Number: <strong>{status.winningNumber}</strong></p>
-                <p>Win Amount: <strong>{(status.winAmount / 1e18).toFixed(2)} POL</strong></p>
-              </div>,
-              {
-                position: "top-right",
-                autoClose: 5000,
-              }
-            );
-          }
-        } else {
-          toast.dismiss();
-          toast.error('Failed to retrieve requestId from transaction logs.', {
-            position: "top-right",
-          });
-        }
+    const getAllResults = async () => {
+      if (address !== 'undefined') {
+        await getResults();
       }
-    };
-
-    processReceipt();
-  }, [receiptData]);
-
-  // Function to read request status from the contract
-  const getRequestStatus = async (requestId) => {
-    try {
-      const contract = new ethers.Contract(contractAddress, contractAbi);
-      const status = await contract.getRequestStatus(requestId);
-      return status;
-    } catch (error) {
-      console.error('Error fetching request status:', error);
-      toast.error(`Error fetching request status: ${error.message}`, {
-        position: "top-right",
-      });
-      return null;
     }
-  };
+    getAllResults();
+  }, [resultWinningNumber, resultTotalWinAmount])
+  // fin test fetch
+
 
   // Async function to place bets
   async function placeBets() {
