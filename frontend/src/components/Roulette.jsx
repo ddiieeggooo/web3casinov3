@@ -18,7 +18,6 @@ export default function Roulette() {
   const [bets, setBets] = useState([]);
   const [resultWinningNumber, setResultWinningNumber] = useState([]);
   const [resultTotalWinAmount, setResultTotalWinAmount] = useState([]);
-  const [updateCounter, setUpdateCounter] = useState(0); // Counter for triggering re-renders
 
   const allowedBetAmounts = [0.5, 1, 5, 10];
   const redNumbers = [
@@ -127,22 +126,26 @@ export default function Roulette() {
         setBets([]);
         // Show a spinning roulette toast
         toast.info(
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
             <img
-              src="https://i.imgur.com/7yUvePI.gif" // Example spinning roulette GIF
+              src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXUxamVjbHg2Z2Vib2xjODh4NG1kN3pjMThuc2xlbXFyN25iMTVldSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xUn3CftPBajoflzROU/giphy-downsized-large.gif"
               alt="Spinning Roulette"
-              style={{ width: '50px', marginRight: '10px' }}
+              style={{ width: '200px', height: '200px', marginRight: '10px', marginLeft: '16px' }} // Increased width
             />
-            <span>Bet placed successfully! Waiting for confirmation...</span>
+            <span>Bet placed successfully ! See the result soon in the last spin section</span>
           </div>,
           {
             position: 'top-right',
-            autoClose: false,
+            autoClose: 19000, // Duration set to 30 seconds
             hideProgressBar: true,
             closeOnClick: false,
             pauseOnHover: false,
             draggable: false,
             progress: undefined,
+            style: {
+              background: '#086b08', // Custom background color
+              color: '#fff',      // Custom text color
+            },
           }
         );
       },
@@ -183,7 +186,6 @@ export default function Roulette() {
 
       setResultTotalWinAmount(frontendTotalWinAmount);
       setResultWinningNumber(frontendWinningNumber);
-      setUpdateCounter((prev) => prev + 1); // Increment update counter to trigger re-render
     } catch (error) {
       console.error('Error fetching results:', error);
       setResultTotalWinAmount([]);
@@ -191,17 +193,17 @@ export default function Roulette() {
     }
   };
 
-  // useEffect(() => {
-  //   const getAllResults = async () => {
-  //     if (address) {
-  //       await getResults();
-  //     } else {
-  //       setResultTotalWinAmount([]);
-  //       setResultWinningNumber([]);
-  //     }
-  //   };
-  //   getAllResults();
-  // }, [address, updateCounter]); // Trigger re-fetch when address or updateCounter changes
+  useEffect(() => {
+    const getAllResults = async () => {
+      if (resultWinningNumber && resultTotalWinAmount) {
+        await getResults();
+        // } else {
+        //   setResultTotalWinAmount([]);
+        //   setResultWinningNumber([]);
+      }
+    };
+    getAllResults();
+  }, [resultWinningNumber, resultTotalWinAmount]);
 
   // Async function to place bets
   async function placeBets() {
@@ -262,9 +264,8 @@ export default function Roulette() {
               key={amount}
               onClick={() => setBetAmount(amount)}
               disabled={betAmount === amount}
-              className={`bet-amount-button ${
-                betAmount === amount ? 'selected' : ''
-              }`}
+              className={`bet-amount-button ${betAmount === amount ? 'selected' : ''
+                }`}
             >
               {amount} POL
             </button>
@@ -288,9 +289,8 @@ export default function Roulette() {
                   <button
                     key={number}
                     onClick={() => handleNumberClick(number)}
-                    className={`number-button ${
-                      redNumbers.includes(number) ? 'red' : 'black'
-                    }`}
+                    className={`number-button ${redNumbers.includes(number) ? 'red' : 'black'
+                      }`}
                   >
                     {number}
                   </button>
@@ -301,9 +301,8 @@ export default function Roulette() {
                   <button
                     key={number}
                     onClick={() => handleNumberClick(number)}
-                    className={`number-button ${
-                      redNumbers.includes(number) ? 'red' : 'black'
-                    }`}
+                    className={`number-button ${redNumbers.includes(number) ? 'red' : 'black'
+                      }`}
                   >
                     {number}
                   </button>
@@ -314,9 +313,8 @@ export default function Roulette() {
                   <button
                     key={number}
                     onClick={() => handleNumberClick(number)}
-                    className={`number-button ${
-                      redNumbers.includes(number) ? 'red' : 'black'
-                    }`}
+                    className={`number-button ${redNumbers.includes(number) ? 'red' : 'black'
+                      }`}
                   >
                     {number}
                   </button>
@@ -358,35 +356,37 @@ export default function Roulette() {
 
         <button
           onClick={placeBets}
-          disabled={isPending || isTxLoading}
+          // disabled={isPending || isTxLoading}
+          disabled={isPending}
           className="place-bets-button"
         >
-          {isPending || isTxLoading ? 'Placing Bets...' : 'Place Bets'}
+          {/* {isPending || isTxLoading ? 'Placing Bets...' : 'Place Bets'} */}
+          {isPending ? 'Placing Bets...' : 'Place Bets'}
         </button>
 
         <h2>Last Spin</h2>
         <div className="last-spin">
           <p>
-            <strong>Winning Number:</strong>{' '}
+            <strong>Winning Number :</strong>{' '}
             {resultWinningNumber && resultWinningNumber.length > 0
               ? resultWinningNumber[
-                  resultWinningNumber.length - 1
-                ]?.args?.winningNumber.toString()
+                resultWinningNumber.length - 1
+              ]?.args?.winningNumber.toString()
               : 'No spins yet'}
           </p>
           <p>
-            <strong>Total Win Amount:</strong>{' '}
+            <strong>Total Win Amount :</strong>{' '}
             {resultTotalWinAmount && resultTotalWinAmount.length > 0
               ? formatEther(
-                  resultTotalWinAmount[
-                    resultTotalWinAmount.length - 1
-                  ]?.args?.totalWinAmount.toString()
-                ) + ' POL'
+                resultTotalWinAmount[
+                  resultTotalWinAmount.length - 1
+                ]?.args?.totalWinAmount.toString()
+              ) + ' POL'
               : 'No spins yet'}
           </p>
         </div>
 
-        <h2>Spin History</h2>
+        <h2>Spin History from last to first</h2>
         <div className="spin-history">
           {resultWinningNumber && resultWinningNumber.length > 0 ? (
             <table className="spin-history-table">
@@ -410,10 +410,10 @@ export default function Roulette() {
                           resultTotalWinAmount.length - 1 - index
                         ]
                           ? formatEther(
-                              resultTotalWinAmount[
-                                resultTotalWinAmount.length - 1 - index
-                              ]?.args?.totalWinAmount ?? '0'
-                            ) + ' POL'
+                            resultTotalWinAmount[
+                              resultTotalWinAmount.length - 1 - index
+                            ]?.args?.totalWinAmount ?? '0'
+                          ) + ' POL'
                           : 'N/A'}
                       </td>
                     </tr>
