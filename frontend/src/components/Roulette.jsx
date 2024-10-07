@@ -171,7 +171,7 @@ export default function Roulette() {
         event: parseAbiItem(
           'event WinAmountCalculated(uint256 totalWinAmount)'
         ),
-        fromBlock: 12724510n,
+        fromBlock: 62758415n,
         toBlock: 'latest',
       });
 
@@ -180,7 +180,7 @@ export default function Roulette() {
         event: parseAbiItem(
           'event RequestFulfilled(uint256 requestId, uint256[] randomWords, uint256 winningNumber)'
         ),
-        fromBlock: 12724510n,
+        fromBlock: 62758415n,
         toBlock: 'latest',
       });
 
