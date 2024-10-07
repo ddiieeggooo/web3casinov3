@@ -61,7 +61,7 @@ contract Roulette is VRFConsumerBaseV2Plus, ReentrancyGuard {
     // For a list of available gas lanes on each network,
     // see https://docs.chain.link/docs/vrf/v2-5/supported-networks
     bytes32 public keyHash =
-        0x816bedba8a50b294e5cbd47842baf240c2385f2eaf719edbd4f250a137a8c899;
+        0x719ed7d7664abc3001c18aac8130a2265e1e70b7e036ae20f3ca8b92b3154d86;
 
     // Depends on the number of requested values that you want sent to the
     // fulfillRandomWords() function. Storing each word costs about 20,000 gas,
@@ -78,11 +78,11 @@ contract Roulette is VRFConsumerBaseV2Plus, ReentrancyGuard {
     uint32 public numWords = 1;
 
     /**
-     * HARDCODED FOR AMOY
-     * COORDINATOR: 0x343300b5d84D444B2ADc9116FEF1bED02BE49Cf2
+     * HARDCODED FOR POLYGON MAINNET
+     * COORDINATOR: 0xec0Ed46f36576541C75739E915ADbCb3DE24bD77
      */
     constructor(uint256 subscriptionId)
-        VRFConsumerBaseV2Plus(0x343300b5d84D444B2ADc9116FEF1bED02BE49Cf2)
+        VRFConsumerBaseV2Plus(0xec0Ed46f36576541C75739E915ADbCb3DE24bD77)
     {
         s_subscriptionId = subscriptionId;
     }
@@ -359,9 +359,10 @@ contract Roulette is VRFConsumerBaseV2Plus, ReentrancyGuard {
 
     // Function to receive POL tokens
     receive() external payable {}
+    fallback() external payable {}
 
     // Function to withdraw POL tokens from the contract (if needed)
-    function withdrawPOL(uint256 amount) external nonReentrant onlyOwner {
+    function withdrawPOL(uint256 amount) external payable nonReentrant onlyOwner {
         require(address(this).balance >= amount, "Insufficient balance");
         (bool success, ) = msg.sender.call{value: amount}("");
         require(success, "Transfer failed");
