@@ -11,6 +11,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { publicClient } from '@/utils/client';
 import Head from 'next/head';
+import Link from 'next/link';
 
 export default function Roulette() {
   const { address } = useAccount();
@@ -257,6 +258,12 @@ export default function Roulette() {
         <ToastContainer />
 
         <h1>Roulette</h1>
+        <h4>Make sure your potential earnings do not exceed the smart contract balance, otherwise earnings won't be fully paid. Verify here:</h4>
+        <>
+          <Link legacyBehavior href="https://polygonscan.com/address/0xcf4fed48a393acca7c8c2508ff745d9602b62a4a">
+            <a target="_blank" rel="noopener noreferrer">Polygonscan Address</a>
+          </Link>
+        </>
         <h2>Select Bet Amount per Coin:</h2>
         <div className="bet-amount-buttons">
           {allowedBetAmounts.map((amount) => (
@@ -438,6 +445,12 @@ export default function Roulette() {
         h1 {
           font-family: 'Pacifico', cursive;
           font-size: 3em;
+          color: #ffd700;
+          margin-bottom: 20px;
+        }
+        h4 {
+          font-family: 'Open Sans', sans-serif;
+          font-size: 1.5em;
           color: #ffd700;
           margin-bottom: 20px;
         }
