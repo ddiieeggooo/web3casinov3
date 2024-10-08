@@ -258,12 +258,6 @@ export default function Roulette() {
         <ToastContainer />
 
         <h1>Roulette</h1>
-        <h4>Make sure your potential earnings do not exceed the smart contract balance, otherwise earnings won't be fully paid. Verify here:</h4>
-        <>
-          <Link legacyBehavior href="https://polygonscan.com/address/0xcf4fed48a393acca7c8c2508ff745d9602b62a4a">
-            <a target="_blank" rel="noopener noreferrer">Polygonscan Address</a>
-          </Link>
-        </>
         <h2>Select Bet Amount per Coin:</h2>
         <div className="bet-amount-buttons">
           {allowedBetAmounts.map((amount) => (
