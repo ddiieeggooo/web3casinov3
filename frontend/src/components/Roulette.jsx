@@ -198,13 +198,10 @@ export default function Roulette() {
     const getAllResults = async () => {
       if (resultWinningNumber && resultTotalWinAmount) {
         await getResults();
-        // } else {
-        //   setResultTotalWinAmount([]);
-        //   setResultWinningNumber([]);
       }
     };
     getAllResults();
-  }, [resultWinningNumber, resultTotalWinAmount]);
+  }, [receiptData]);
 
   // Async function to place bets
   async function placeBets() {
