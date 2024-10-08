@@ -12,6 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { publicClient } from '@/utils/client';
 import Head from 'next/head';
 import Link from 'next/link';
+import { waitForTransactionReceipt } from 'viem/actions';
 
 export default function Roulette() {
   const { address } = useAccount();
@@ -201,7 +202,7 @@ export default function Roulette() {
       }
     };
     getAllResults();
-  }, [receiptData]);
+  }, [resultWinningNumber, resultTotalWinAmount]);
 
   // Async function to place bets
   async function placeBets() {
