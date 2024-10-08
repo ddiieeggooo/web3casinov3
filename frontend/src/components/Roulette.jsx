@@ -4,6 +4,8 @@ import {
   useAccount,
   useWaitForTransactionReceipt,
   useWriteContract,
+  useReadContract,
+  useBalance
 } from 'wagmi';
 import { contractAddress, contractAbi } from '../constants/index';
 import { parseEther, parseAbiItem, formatEther } from 'viem';
@@ -13,6 +15,11 @@ import { publicClient } from '@/utils/client';
 import Head from 'next/head';
 import Link from 'next/link';
 import { waitForTransactionReceipt } from 'viem/actions';
+
+// Read the smart contract balance
+// const balanceOfSmartContract = await publicClient.getBalance({
+//   address: '0xcF4fED48a393aCCa7c8C2508FF745d9602b62A4a',
+// })
 
 export default function Roulette() {
   const { address } = useAccount();
@@ -234,6 +241,13 @@ export default function Roulette() {
   const row2 = [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35]; // Middle row
   const row3 = [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34]; // Bottom row
 
+  // Read and update the smart contract balance
+  const { data: balanceOfSmartContract, isError, isLoading } = useBalance({
+    address: '0xcF4fED48a393aCCa7c8C2508FF745d9602b62A4a',
+    watch: true, // Enables real-time updates
+    // pollingInterval: 10000, // Polls every 10 seconds
+  });
+
   return (
     <>
       <Head>
@@ -256,6 +270,15 @@ export default function Roulette() {
         <ToastContainer />
 
         <h1>Roulette</h1>
+        <h2>Make sure your potential gains are less than the total balance of the smart contract, otherwise you will not be paid for all of your winnings</h2>
+        <h2>
+      Current balance of the smart contract:{' '}
+      {isLoading
+        ? 'Loading...'
+        : isError
+        ? 'Error fetching balance'
+        : `${formatEther(balanceOfSmartContract?.value || 0)} POL`}
+    </h2>
         <h2>Select Bet Amount per Coin:</h2>
         <div className="bet-amount-buttons">
           {allowedBetAmounts.map((amount) => (
