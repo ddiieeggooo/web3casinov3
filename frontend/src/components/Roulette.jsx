@@ -359,7 +359,7 @@ export default function Roulette() {
           ))}
         </div>
 
-        <h2>Bets Placed:</h2>
+        <h2>Bets Placed (maximum total bet : 100 POL):</h2>
         <ul className="bets-placed">
           {bets.map((bet, index) => (
             <li key={index} className="bet-item">
