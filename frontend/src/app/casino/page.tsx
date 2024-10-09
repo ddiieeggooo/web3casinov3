@@ -20,8 +20,8 @@ export default function Casino() {
           <Link href="/casino/polygon" legacyBehavior>
             <a className="coin polygon">Polygon Room</a>
           </Link>
-          <Link href="#" legacyBehavior>
-            <a className="coin multiversx">MultiversX Room (Coming Soon)</a>
+          <Link href="/casino/multiversx" legacyBehavior>
+            <a className="coin multiversx">MultiversX Room (Currently in development)</a>
           </Link>
           <Link href="#" legacyBehavior>
             <a className="coin algorand">Algorand Room (Coming Soon)</a>
@@ -86,22 +86,23 @@ export default function Casino() {
           cursor: pointer;
         }
         .multiversx {
-          background-color: #1E90FF; /* Dodger Blue */
+          background-color: #29f7de; /* MultiversX Green */
+          cursor: pointer;
         }
         .algorand {
-          background-color: #00A3E0; /* Light Blue */
+          background-color: #080808; /* Algorand Black */
         }
         .cardano {
-          background-color: #0033AD; /* Dark Blue */
+          background-color: #0939b1; /* Cardano Blue */
         }
         .solana {
-          background-color: #00FFA3; /* Mint Green */
+          background-color: #6979d9; /* Solana Purple */
         }
         .cosmos {
-          background-color: #6F2DA8; /* Violet */
+          background-color: #1f1f38; /* Cosmos Blue */
         }
         /* Disable click for coming soon rooms */
-        .coin:not(.polygon) {
+        .coin:not(.polygon):not(.multiversx) {
           pointer-events: none;
           opacity: 0.6;
         }

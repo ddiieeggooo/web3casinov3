@@ -21,7 +21,7 @@ import { waitForTransactionReceipt } from 'viem/actions';
 //   address: '0xcF4fED48a393aCCa7c8C2508FF745d9602b62A4a',
 // })
 
-export default function Roulette() {
+export default function Polygonroulette() {
   const { address } = useAccount();
   const [betAmount, setBetAmount] = useState(0.5); // Default bet amount
   const [bets, setBets] = useState([]);

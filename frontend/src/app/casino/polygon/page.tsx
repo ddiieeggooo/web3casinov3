@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import Roulette from '../../../components/Roulette';
+import Polygonroulette from '../../../components/Polygonroulette';
 import Head from 'next/head';
 
 export default function Polygon() {
@@ -45,7 +45,7 @@ export default function Polygon() {
                   Click here to play roulette
                 </button>
               </div>
-              {showRoulette && <Roulette />}
+              {showRoulette && <Polygonroulette />}
               <div className="casino-table">
                 <button disabled>
                   Play blackjack (not available yet)
