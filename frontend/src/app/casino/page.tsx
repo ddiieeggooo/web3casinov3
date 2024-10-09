@@ -35,9 +35,6 @@ export default function Casino() {
           <Link href="#" legacyBehavior>
             <a className="coin cosmos">Cosmos Room (Coming Soon)</a>
           </Link>
-          <Link href="#" legacyBehavior>
-            <a className="coin ergo">Ergo Room (Coming Soon)</a>
-          </Link>
         </div>
       </div>
       <style jsx>{`
@@ -102,9 +99,6 @@ export default function Casino() {
         }
         .cosmos {
           background-color: #6F2DA8; /* Violet */
-        }
-        .ergo {
-          background-color: #FF5F00; /* Orange */
         }
         /* Disable click for coming soon rooms */
         .coin:not(.polygon) {
