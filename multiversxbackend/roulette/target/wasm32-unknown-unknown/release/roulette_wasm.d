@@ -1,0 +1,1 @@
+/home/ddiieeggoo/web3casinov3/multiversxbackend/roulette/target/wasm32-unknown-unknown/release/roulette_wasm.wasm: /home/ddiieeggoo/web3casinov3/multiversxbackend/roulette/src/roulette.rs /home/ddiieeggoo/web3casinov3/multiversxbackend/roulette/wasm/src/lib.rs
